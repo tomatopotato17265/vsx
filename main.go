@@ -303,47 +303,29 @@ func main() {
 			fmt.Printf("[%d] %s\n", i+1, name)
 		}
 
-		fmt.Print("\nEnter the numbers of the IDEs you want to set as default (e.g., 1, 2): ")
+		fmt.Print("\nEnter the number of the IDE you want to set as default: ")
 		
 		reader := bufio.NewReader(os.Stdin)
 		input, _ := reader.ReadString('\n')
 		input = strings.TrimSpace(input)
 
-		if input == "" {
-			fmt.Println("No selection made. Defaults not updated.")
+		idx, err := strconv.Atoi(input)
+		if err != nil || idx < 1 || idx > len(names) {
+			fmt.Println("Invalid selection.")
 			return
 		}
 
-		input = strings.ReplaceAll(input, " ", ",")
-		parts := strings.Split(input, ",")
-		
-		var selectedDefaults []string
-		for _, p := range parts {
-			p = strings.TrimSpace(p)
-			if p == "" {
-				continue
-			}
-			idx, err := strconv.Atoi(p)
-			if err == nil && idx >= 1 && idx <= len(names) {
-				ideName := names[idx-1]
-				duplicate := false
-				for _, existing := range selectedDefaults {
-					if existing == ideName {
-						duplicate = true
-						break
-					}
-				}
-				if !duplicate {
-					selectedDefaults = append(selectedDefaults, ideName)
-				}
-			}
-		}
+		selectedIDE := names[idx-1]
 
-		if len(selectedDefaults) > 0 {
-			saveConfig(selectedDefaults)
-			fmt.Printf("Successfully set default IDE(s) to: %s\n", strings.Join(selectedDefaults, ", "))
+		fmt.Printf("Do you want to set %s as your default IDE? [y/N]: ", selectedIDE)
+		confirm, _ := reader.ReadString('\n')
+		confirm = strings.ToLower(strings.TrimSpace(confirm))
+
+		if confirm == "y" || confirm == "yes" {
+			saveConfig([]string{selectedIDE})
+			fmt.Printf("\nSuccessfully set %s as your default IDE!\n", selectedIDE)
 		} else {
-			fmt.Println("No valid selections made. Defaults not updated.")
+			fmt.Println("\nSetup cancelled. No changes made.")
 		}
 		return
 	}
